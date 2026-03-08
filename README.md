@@ -1,6 +1,9 @@
 # Zixport
 
-The game library manages a pixel buffer and exposes a C API. Each platform wrapper creates a native window, forwards input events, and blits the pixel buffer to the screen. 
+The game core logic is managed in zig, exported as a C API.
+
+Each platform wrapper (`macos`, `web`, etc) creates a native window, forwards input events, and blits the pixel buffer to the screen. 
+
 Adding a new platform means writing a thin wrapper — the game logic stays the same.
 
 ### Build & Run
@@ -8,3 +11,7 @@ Adding a new platform means writing a thin wrapper — the game logic stays the 
 ```sh
 make macos         # Build and run macos
 ```
+
+### Caution
+
+- The macos swift wrapper is mainly written by llm, so it maybe very wrong!
