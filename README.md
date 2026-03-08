@@ -16,7 +16,11 @@ make macos         # Build and run macos
 
 ### Software Render
 
-The cubic is rendered by [formula](https://github.com/tsoding/formula). 
+
+https://github.com/user-attachments/assets/978f5bd6-1245-4e98-86d9-73184c89b7e0
+
+
+The penger is rendered by [formula](https://github.com/tsoding/formula). 
 
 This implementation is not solid, it will
 - panic when z <=0.
