@@ -6,6 +6,12 @@ Each platform wrapper (`macos`, `web`, etc) creates a native window, forwards in
 
 Adding a new platform means writing a thin wrapper — the game logic stays the same.
 
+The cubic rendered by [formula](https://github.com/tsoding/formula). 
+
+This implementation is not solid, it will
+- panic when z <=0.
+- the cast from f32 to i32 will panic when f32 too large.
+
 ### Build & Run
 
 ```sh
