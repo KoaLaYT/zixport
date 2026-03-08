@@ -1,4 +1,7 @@
 const std = @import("std");
+const Vec3 = @import("Vec3.zig");
+// const cube = @import("cube.zig");
+const penger = @import("penger.zig");
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -32,13 +35,30 @@ export fn game_update() bool {
     g_angle += std.math.pi * dt;
     g_angle = @mod(g_angle, 2 * std.math.pi);
 
-    for (0..fs.len) |i| {
-        const a, const b = fs[i];
+    for (penger.fs) |f| {
+        const i, const j, const k = f;
 
-        const p1 = vs[a].rotate_xz(g_angle).translate_z(2.0).project().screen();
-        const p2 = vs[b].rotate_xz(g_angle).translate_z(2.0).project().screen();
+        const x0, const y0 = penger.vs[i]
+            .rotate_xz(g_angle)
+            .translate_z(1.0)
+            .project()
+            .screen(WIDTH, HEIGHT);
 
-        draw_line(p1, p2);
+        const x1, const y1 = penger.vs[j]
+            .rotate_xz(g_angle)
+            .translate_z(1.0)
+            .project()
+            .screen(WIDTH, HEIGHT);
+
+        const x2, const y2 = penger.vs[k]
+            .rotate_xz(g_angle)
+            .translate_z(1.0)
+            .project()
+            .screen(WIDTH, HEIGHT);
+
+        draw_line(x0, y0, x1, y1);
+        draw_line(x1, y1, x2, y2);
+        draw_line(x2, y2, x0, y0);
     }
 
     return true;
@@ -53,35 +73,6 @@ export fn game_key_up(keycode: u16) void {
         running = false;
     }
 }
-
-const vs = [_]Vec3{
-    .{ .x = 0.5, .y = 0.5, .z = 0.5 },
-    .{ .x = 0.5, .y = -0.5, .z = 0.5 },
-    .{ .x = -0.5, .y = -0.5, .z = 0.5 },
-    .{ .x = -0.5, .y = 0.5, .z = 0.5 },
-
-    .{ .x = 0.5, .y = 0.5, .z = -0.5 },
-    .{ .x = 0.5, .y = -0.5, .z = -0.5 },
-    .{ .x = -0.5, .y = -0.5, .z = -0.5 },
-    .{ .x = -0.5, .y = 0.5, .z = -0.5 },
-};
-
-const fs = [_][2]usize{
-    .{ 0, 1 },
-    .{ 1, 2 },
-    .{ 2, 3 },
-    .{ 3, 0 },
-
-    .{ 4, 5 },
-    .{ 5, 6 },
-    .{ 6, 7 },
-    .{ 7, 4 },
-
-    .{ 0, 4 },
-    .{ 1, 5 },
-    .{ 2, 6 },
-    .{ 3, 7 },
-};
 
 const Color = struct {
     r: u8,
@@ -104,68 +95,20 @@ const Color = struct {
     };
 };
 
-const Vec3 = struct {
-    x: f32,
-    y: f32,
-    z: f32,
-
-    fn translate_z(v: Vec3, d: f32) Vec3 {
-        return .{
-            .x = v.x,
-            .y = v.y,
-            .z = v.z + d,
-        };
-    }
-
-    fn rotate_xz(v: Vec3, angle: f32) Vec3 {
-        const c = @cos(angle);
-        const s = @sin(angle);
-
-        return .{
-            .x = v.x * c - v.z * s,
-            .y = v.y,
-            .z = v.x * s + v.z * c,
-        };
-    }
-
-    fn project(v: Vec3) Vec3 {
-        return .{
-            .x = v.x / v.z,
-            .y = v.y / v.z,
-            .z = 1,
-        };
-    }
-
-    fn screen(v: Vec3) Point {
-        const x = (v.x + 1) / 2.0 * @as(f32, @floatFromInt(WIDTH));
-        const y = (v.y + 1) / 2.0 * @as(f32, @floatFromInt(HEIGHT));
-
-        return .{
-            .x = @intFromFloat(@trunc(x)),
-            .y = @intFromFloat(@trunc(y)),
-        };
-    }
-};
-
-const Point = struct {
-    x: i32,
-    y: i32,
-};
-
-fn draw_line(p1: Point, p2: Point) void {
-    const dx: i32 = @intCast(@abs(p1.x - p2.x));
-    var dy: i32 = @intCast(@abs(p1.y - p2.y));
+fn draw_line(x1: i64, y1: i64, x2: i64, y2: i64) void {
+    const dx: i64 = @intCast(@abs(x1 - x2));
+    var dy: i64 = @intCast(@abs(y1 - y2));
     dy = dy * -1;
 
-    const sx: i32 = if (p1.x < p2.x) 1 else -1;
-    const sy: i32 = if (p1.y < p2.y) 1 else -1;
+    const sx: i64 = if (x1 < x2) 1 else -1;
+    const sy: i64 = if (y1 < y2) 1 else -1;
 
     var err = dx + dy;
-    var x0 = p1.x;
-    var y0 = p1.y;
+    var x0 = x1;
+    var y0 = y1;
     while (true) {
         pixel(x0, y0);
-        if (x0 == p2.x and y0 == p2.y) break;
+        if (x0 == x2 and y0 == y2) break;
 
         const e2 = 2 * err;
         if (e2 >= dy) {
@@ -179,7 +122,7 @@ fn draw_line(p1: Point, p2: Point) void {
     }
 }
 
-fn pixel(x: i32, y: i32) void {
+fn pixel(x: i64, y: i64) void {
     if (0 <= x and x < WIDTH and 0 <= y and y < HEIGHT) {
         const c = Color.foreground;
         const ux: usize = @intCast(x);
