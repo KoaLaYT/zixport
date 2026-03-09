@@ -10,7 +10,7 @@ Adding a new platform means writing a thin wrapper — the game logic stays the 
 ### Build & Run
 
 ```sh
-make macos         # Build and run macos
+make run/macos         # Build and run macos
 ```
 
 
