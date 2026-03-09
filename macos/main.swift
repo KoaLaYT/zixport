@@ -15,7 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "Zixport"
+        window.title = "zixport"
         window.center()
 
         renderView = RenderView(

@@ -1,7 +1,7 @@
-.PHONY: clean macos
+.PHONY: clean run/macos
 
 clean:
 	rm -rf .zig-cache zig-out
 
-macos:
-	zig build macos
+run/macos:
+	zig build run-macos

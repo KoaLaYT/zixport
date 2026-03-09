@@ -14,34 +14,31 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+    const game_lib_install = b.addInstallArtifact(game_lib, .{});
 
     // macOS platform: compile Swift, link against the built game lib
-    const macos_step = b.step("macos", "Build macOS app");
-
-    const swift_compile = b.addSystemCommand(&.{
+    const macos_build_step = b.step("macos", "Build macos app");
+    const macos_build_ouput = b.pathJoin(&.{ b.install_prefix, "zixport-macos" });
+    const swiftc_cmd = b.addSystemCommand(&.{
         "swiftc",
         "macos/main.swift",
         "-import-objc-header",
         "include/game.h",
-        "-Xlinker",
+        "-L",
+        b.pathJoin(&.{ b.install_prefix, "lib" }),
         "-lgame",
-        "-Xlinker",
-    });
-    swift_compile.addPrefixedDirectoryArg("-L", game_lib.getEmittedBinDirectory());
-    swift_compile.addArgs(&.{
-        "-framework", "Cocoa",
         "-o",
+        macos_build_ouput,
     });
-    const exe = swift_compile.addOutputFileArg("zixport-macos");
+    swiftc_cmd.addFileInput(b.path("macos/main.swift"));
+    swiftc_cmd.addFileInput(b.path("include/game.h"));
 
-    // Install the macOS binary (zig-out/bin/softrend-macos)
-    const install_exe = b.addInstallBinFile(exe, "zixport-macos");
+    swiftc_cmd.step.dependOn(&game_lib_install.step);
+    macos_build_step.dependOn(&swiftc_cmd.step);
 
     // Run the app after building
-    const run_cmd = b.addSystemCommand(&.{"zig-out/bin/zixport-macos"});
-    run_cmd.step.dependOn(&install_exe.step);
-    macos_step.dependOn(&run_cmd.step);
-
-    // Default build only installs (no auto-run)
-    b.getInstallStep().dependOn(&install_exe.step);
+    const macos_run_step = b.step("run-macos", "Run macos app");
+    const macos_run_cmd = b.addSystemCommand(&.{macos_build_ouput});
+    macos_run_cmd.step.dependOn(macos_build_step);
+    macos_run_step.dependOn(&macos_run_cmd.step);
 }
